@@ -1,0 +1,61 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Copyright (c) 2015, Alcatel-Lucent Inc
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
+#     * Neither the name of the copyright holder nor the names of its contributors
+#       may be used to endorse or promote products derived from this software without
+#       specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+import os
+import json
+
+for f in os.listdir("."):
+
+    if os.path.splitext(f)[1] != ".spec":
+        continue
+
+    with open(f, 'r') as fp:
+        print ("converting %s" % f)
+        d = json.loads(fp.read())
+
+        if "attributes" in d:
+            attrs = d["attributes"]
+            d["attributes"] = []
+            for key, a in attrs.iteritems():
+                a[u'name'] = key
+                d[u'attributes'].append(a)
+            d["attributes"] = sorted(d["attributes"], lambda x, y: cmp(x["name"], y["name"]))
+
+        if "children" in d:
+            apis = d["children"]
+            d["children"] = []
+            for key, a in apis.iteritems():
+                a[u'rest_name'] = key
+                d[u'children'].append(a)
+            d["children"] = sorted(d["children"], lambda x, y: cmp(x["rest_name"], y["rest_name"]))
+
+        content = json.dumps(d, sort_keys=True, indent=4)
+        content = '\n'.join([line.rstrip() for line in content.split('\n')])
+
+    with open(f, 'w') as fp:
+        fp.write(content)
